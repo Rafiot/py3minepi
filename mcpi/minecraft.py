@@ -11,6 +11,9 @@ entityId, by injecting [] that flattens to nothing)
 
 @author: Aron Nieminen, Mojang AB
 
+Updated with getDirection method from the RaspberryJuice plugin:
+    https://github.com/zhuowei/RaspberryJuice
+
 """
 from .connection import Connection
 from .vec3 import Vec3
@@ -56,6 +59,19 @@ class CmdPositioner(object):
         """Set entity tile position (entityId:int, x,y,z)"""
         self.conn.send(self.pkg + ".setTile", id, intFloor(*args))
 
+    def getDirection(self, id):
+        """Get entity direction (entityId:int) => Vec3"""
+        s = self.conn.sendReceive(self.pkg + ".getDirection", id)
+        return Vec3(*map(float, s.split(",")))
+
+    def getRotation(self, id):
+        """get entity rotation (entityId:int) => float"""
+        return float(self.conn.sendReceive(self.pkg + ".getRotation", id))
+
+    def getPitch(self, id):
+        """get entity pitch (entityId:int) => float"""
+        return float(self.conn.sendReceive(self.pkg + ".getPitch", id))
+
     def setting(self, setting, status):
         """Set a player setting (setting, status). keys: autojump"""
         self.conn.send(self.pkg + ".setting", setting, 1 if bool(status) else 0)
@@ -69,21 +85,31 @@ class CmdEntity(CmdPositioner):
 
 class CmdPlayer(CmdPositioner):
     """Methods for the host (Raspberry Pi) player"""
-    def __init__(self, connection):
+    def __init__(self, connection, name=None):
         super(CmdPlayer, self).__init__(connection, "player")
         self.conn = connection
+        self.name = name
 
     def getPos(self):
-        return CmdPositioner.getPos(self, [])
+        return CmdPositioner.getPos(self, self.name)
 
     def setPos(self, *args):
-        return CmdPositioner.setPos(self, [], args)
+        return CmdPositioner.setPos(self, self.name, args)
 
     def getTilePos(self):
-        return CmdPositioner.getTilePos(self, [])
+        return CmdPositioner.getTilePos(self, self.name)
 
     def setTilePos(self, *args):
-        return CmdPositioner.setTilePos(self, [], args)
+        return CmdPositioner.setTilePos(self, self.name, args)
+
+    def getDirection(self):
+        return CmdPositioner.getDirection(self, self.name)
+
+    def getRotation(self):
+        return CmdPositioner.getRotation(self, self.name)
+
+    def getPitch(self):
+        return CmdPositioner.getPitch(self, self.name)
 
 
 class CmdCamera:
@@ -125,12 +151,12 @@ class CmdEvents:
 
 class Minecraft:
     """The main class to interact with a running instance of Minecraft Pi."""
-    def __init__(self, address="localhost", port=4711):
+    def __init__(self, address="localhost", port=4711, name=None):
         self._conn = Connection(address, port)
 
         self.camera = CmdCamera(self._conn)
         self.entity = CmdEntity(self._conn)
-        self.player = CmdPlayer(self._conn)
+        self.player = CmdPlayer(self._conn, name)
         self.events = CmdEvents(self._conn)
 
         self.getHeight = self.getGroundHeight
@@ -188,7 +214,7 @@ class Minecraft:
         self._conn.send("world.setting", setting, 1 if bool(status) else 0)
 
     @staticmethod
-    def create(address="localhost", port=4711):
+    def create(address="localhost", port=4711, name=None):
         warnings.warn(
             "The `mc = Minecraft.create(address,port)` style is deprecated; " +
             "please use the more Pythonic `mc = Minecraft(address, port)` style " +
