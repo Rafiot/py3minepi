@@ -58,6 +58,18 @@ class Vec3:
         self.y = func(self.y)
         self.z = func(self.z)
 
+    def __cmp__(self, rhs):
+        dx = self.x - rhs.x
+        if dx != 0:
+            return dx
+        dy = self.y - rhs.y
+        if dy != 0:
+            return dy
+        dz = self.z - rhs.z
+        if dz != 0:
+            return dz
+        return 0
+
     def __eq__(self, other):
         return all([self.x == other.x, self.y == other.y, self.z == other.z])
 
@@ -75,6 +87,18 @@ class Vec3:
 
     def rotateRight(self):
         self.x, self.z = -self.z, self.x
+
+    @staticmethod
+    def y(n=1):
+        return Vec3(0, n, 0)
+
+    @staticmethod
+    def up(n=1):
+        return Vec3.y(n)
+
+    @staticmethod
+    def down(n=1):
+        return Vec3.y(-n)
 
     def distanceTo(self, other):
         x_dist = other.x - self.x
