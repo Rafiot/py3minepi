@@ -45,15 +45,15 @@ while True:
 
     if what == 1:
         for i in range(length):
+            mc.setBlock(curpos.x, curpos.y, curpos.z, 1)
             curpos = new_pos(curpos)
             curpos += curpos.up()
-            mc.setBlock(curpos.x, curpos.y, curpos.z, 1)
     elif what == 2:
         for i in range(length):
+            mc.setBlock(curpos.x, curpos.y, curpos.z, 1)
             curpos = new_pos(curpos)
             curpos += curpos.down()
-            mc.setBlock(curpos.x, curpos.y, curpos.z, 1)
     elif what == 3:
         for i in range(length):
-            curpos = new_pos(curpos)
             mc.setBlock(curpos.x, curpos.y, curpos.z, 1)
+            curpos = new_pos(curpos)
